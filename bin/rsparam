@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+"""Utilities for working with Revit shared parameter files
+
+Usage:
+    rsparam.py (-h | --help)
+    rsparam.py (-V | --version)
+    rsparam.py find dupl <sharedparam_file>
+    rsparam.py merge <merged_file> <sharedparam_files>...
+
+Options:
+    -h, --help         Show this help.
+    -V, --version      Show version.
+"""
+
+
+from docopt import docopt
+import colorful
+
+
+def find_dupl(src_file):
+    print(colorful.yellow(f'Shared param file is: {src_file}'))
+
+
+def merge(dest_file, source_files):
+    print(colorful.yellow(f'Shared param file is: {dest_file}'))
+    print(source_files)
+
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, options_first=False,
+                       help=True, version='rsparam 1.0')
+    if arguments['find']:
+        if arguments['dupl']:
+            find_dupl(arguments['<sharedparam_file>'])
+    elif arguments['merge']:
+        merge(arguments['<merged_file>'], arguments['<sharedparam_files>'])
