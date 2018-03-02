@@ -4,33 +4,111 @@
 Usage:
     rsparam.py (-h | --help)
     rsparam.py (-V | --version)
-    rsparam.py find dupl <sharedparam_file>
-    rsparam.py merge <merged_file> <sharedparam_files>...
+    rsparam.py [-q -e <encod>] list [all] <sharedparam_file>
+    rsparam.py [-q -e <encod>] list [-p -g] <sharedparam_file>
+    rsparam.py [-q -e <encod>] find dupl <sharedparam_file>
+    rsparam.py [-q -e <encod>] merge <merged_file> <sharedparam_files>...
 
 Options:
-    -h, --help         Show this help.
-    -V, --version      Show version.
+    -h, --help                      Show this help.
+    -V, --version                   Show version.
+    -q, --quiet                     Quiet mode.
+    -e <encod>, --encode <encod>    File encoding.
 """
 
 
 from docopt import docopt
 import colorful
+from tabulate import tabulate
+
+# temp manual link for testing
+import sys
+sys.path.append(r'C:\Users\eirannejad\Desktop\gits\rsp')
+
+import rsparam
+
+
+_quiet = False              # global quiet mode flag
+_encoding = 'utf-16'        # global encoding for reading files
+
+
+def report(message):
+    if not _quiet:
+        print(message)
+
+
+def report_globals():
+    report(colorful.yellow('encoding={}'.format(_encoding)))
+
+
+def report_filenames(sparam_files):
+    if not isinstance(sparam_files, list):
+        sparam_files = [sparam_files]
+    for sparam_file in sparam_files:
+        report(colorful.yellow(f'shared parameter file is: {sparam_file}'))
+
+
+def list_params(src_file, sparams=None):
+    if not sparams:
+        spgroups, sparams = rsparam.get_params(src_file, encoding=_encoding)
+
+    report(colorful.yellow('\nshared parameters:'))
+    sparamdata = []
+    for sp in sparams:
+        sparamdata.append((sp.guid, sp.name, sp.datatype, sp.group))
+    print(tabulate(sparamdata, headers=('Guid', 'Name', 'Datatype', 'Group')))
+
+
+def list_groups(src_file, spgroups=None):
+    if not spgroups:
+        spgroups, sparams = rsparam.get_params(src_file, encoding=_encoding)
+
+    report(colorful.yellow('\nshared parameter Groups:'))
+    print(tabulate(spgroups, headers=('Id', 'Description')))
+
+
+def list_all(src_file):
+    spgroups, sparams = rsparam.get_params(src_file, encoding=_encoding)
+    list_groups(src_file, spgroups=spgroups)
+    list_params(src_file, sparams=sparams)
 
 
 def find_dupl(src_file):
-    print(colorful.yellow(f'Shared param file is: {src_file}'))
+    pass
 
 
 def merge(dest_file, source_files):
-    print(colorful.yellow(f'Shared param file is: {dest_file}'))
-    print(source_files)
+    pass
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, options_first=False,
-                       help=True, version='rsparam 1.0')
-    if arguments['find']:
-        if arguments['dupl']:
-            find_dupl(arguments['<sharedparam_file>'])
-    elif arguments['merge']:
-        merge(arguments['<merged_file>'], arguments['<sharedparam_files>'])
+    args = docopt(__doc__, version='rsparam 1.0')
+
+    # set global flags
+    _quiet = args['--quiet']
+    _encoding = args['--encode']
+    report_globals()
+
+    if args['list']:
+        src_file = args['<sharedparam_file>']
+        report_filenames(src_file)
+        if args['-g'] and not args['-p']:
+            # list groups only
+            list_groups(src_file)
+        elif args['-p'] and not args['-g']:
+            # list params only
+            list_params(src_file)
+        else:
+            # list everything
+            list_all(src_file)
+    elif args['find']:
+        src_file = args['<sharedparam_file>']
+        report_filenames(src_file)
+        if args['dupl']:
+            find_dupl(src_file)
+    elif args['merge']:
+        target_file = args['<merged_file>']
+        src_files = args['<sharedparam_files>']
+        report_filenames(target_file)
+        report_filenames(src_files)
+        merge(target_file, src_files)
