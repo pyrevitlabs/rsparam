@@ -176,7 +176,7 @@ def sort(source_file, dest_file, byname=False):
     raise NotImplementedError()
 
 
-if __name__ == '__main__':
+def main():
     args = docopt(__doc__, version='rsparam {}'.format(rsparam.__version__))
 
     # set global flags

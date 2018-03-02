@@ -24,5 +24,9 @@ setup(name='rsparam',
           'colorful',
           'tabulate',
       ],
-      scripts=['bin/rsparam'],
+      entry_points={
+          'console_scripts': [
+              'rsparam = rsparam.cli:main',
+              ],
+          },
       zip_safe=False)
