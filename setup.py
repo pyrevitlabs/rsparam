@@ -1,11 +1,28 @@
 from setuptools import setup
 
+# pylama:skip=1
 setup(name='rsparam',
-      version='0.1',
-      description=' Command line Tool for managing Revit Shared Parameters',
+      version='0.1.0',
+      description='Revit shared parameters utility',
+      long_description='Command line Tool for managing Revit Shared Parameters',
+      classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Topic :: Utilities',
+      ],
+      keywords='autodesk revit parameter cli',
       url='https://github.com/eirannejad/rsparam',
       author='Ehsan Iran-Nejad',
       author_email='eirannejad@gmail.com',
       license='MIT',
       packages=['rsparam'],
+      install_requires=[
+          'docopt',
+          'colorful',
+          'tabulate',
+      ],
+      scripts=['bin/rsparam'],
       zip_safe=False)
