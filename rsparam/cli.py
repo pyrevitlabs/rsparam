@@ -32,10 +32,6 @@ from docopt import docopt
 import colorful
 from tabulate import tabulate
 
-# temp manual link for testing
-import sys
-sys.path.append(r'C:\Users\eirannejad\Desktop\gits\rsp')
-
 import rsparam
 
 
