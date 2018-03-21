@@ -2,7 +2,7 @@ from setuptools import setup
 
 # pylama:skip=1
 setup(name='rsparam',
-      version='0.1.6',
+      version='0.1.7',
       description='Revit shared parameters utility',
       long_description='Command line Tool for managing Revit Shared Parameters',
       classifiers=[

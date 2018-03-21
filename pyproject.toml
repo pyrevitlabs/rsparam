@@ -8,6 +8,9 @@ author = "Ehsan Iran-Nejad"
 author-email = "eirannejad@gmail.com"
 home-page = "https://github.com/eirannejad/rsparam"
 classifiers = ["License :: OSI Approved :: MIT License"]
+requires = ['docopt',
+            'colorful',
+            'tabulate']
 
 [tool.flit.entrypoints."console_scripts"]
 rsparam = "rsparam.cli:main"
