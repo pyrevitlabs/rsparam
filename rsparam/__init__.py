@@ -10,7 +10,7 @@ from collections import namedtuple, defaultdict
 # pylama:ignore=D105
 
 # rsparam version
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 
 SharedParamEntries = namedtuple('SharedParamEntries', ['groups', 'params'])
