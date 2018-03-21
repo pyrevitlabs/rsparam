@@ -18,7 +18,8 @@ SharedParamEntries = namedtuple('SharedParamEntries', ['groups', 'params'])
 
 class SharedParamFileItem(object):
     def __init__(self, lineno):
-        self.lineno = lineno
+        # make line number start from 1
+        self.lineno = lineno + 1
 
     def __contains__(self, key):
         for value in self:
