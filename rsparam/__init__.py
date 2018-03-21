@@ -1,5 +1,6 @@
 """Utilities for working with Revit shared parameter files."""
 
+import re
 
 import codecs
 import csv
@@ -21,7 +22,7 @@ class SharedParamFileItem(object):
 
     def __contains__(self, key):
         for value in self:
-            if key in value:
+            if bool(re.findall(key, str(value))):
                 return True
         return False
 

@@ -8,7 +8,7 @@ Usage:
     rsparam.py [-q -e <encod>] list [-p -g] <src_file>
     rsparam.py [-q -e <encod>] list -p [-f <groupid>] <src_file>
     rsparam.py [-q -e <encod>] find dupl [-n -a -p -g] <src_file>
-    rsparam.py [-q -e <encod>] find <search_string> [-p -g] <src_file>
+    rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g] <src_file>
     rsparam.py [-q -e <encod>] comp [-p -g -1 -2] <first_file> <second_file>
     rsparam.py [-q -e <encod>] merge <dest_file> <src_files>...
     rsparam.py [-q -e <encod>] sort [-n] <src_file> <dest_file>
@@ -69,6 +69,7 @@ def list_params(src_file, sparams=None, groupid=None):
         sparamdata.append((sp.guid, sp.name, sp.datatype, sp.group, sp.lineno))
     print(tabulate(sparamdata,
                    headers=('Guid', 'Name', 'Datatype', 'Group', 'Line #')))
+    report("Total of {} items.".format(len(sparamdata)))
 
 
 def list_groups(src_file, spgroups=None):
@@ -79,6 +80,7 @@ def list_groups(src_file, spgroups=None):
     for spg in spgroups:
         spgroupdata.append((spg.guid, spg.name, spg.lineno))
     print(tabulate(spgroupdata, headers=('Id', 'Description', 'Line #')))
+    report("Total of {} items.".format(len(spgroupdata)))
 
 
 def list_all(src_file):
@@ -213,7 +215,7 @@ def main():
             else:
                 find_all_dupls(src_file)
         else:
-            find_matching(src_file, args['<search_string>'],
+            find_matching(src_file, args['<regex_pattern>'],
                           paramsonly=args['--params'],
                           groupsonly=args['--groups'])
 
