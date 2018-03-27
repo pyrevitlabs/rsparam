@@ -4,12 +4,12 @@
 Usage:
     rsparam.py (-h | --help)
     rsparam.py (-V | --version)
-    rsparam.py [-q -e <encod>] list [-a -s <sort_by> -c <columns>] <src_file>
-    rsparam.py [-q -e <encod>] list [-p -g -s <sort_by> -c <columns>] <src_file>
-    rsparam.py [-q -e <encod>] list -p [-f <groupid>] <src_file>
-    rsparam.py [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns>] <src_file>
-    rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns>] <src_file>
-    rsparam.py [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns>] <first_file> <second_file>
+    rsparam.py [-q -e <encod>] list [-a -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam.py [-q -e <encod>] list [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam.py [-q -e <encod>] list -p [-f <groupid> -o <out_file>] <src_file>
+    rsparam.py [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam.py [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns> -O] <first_file> <second_file>
     rsparam.py [-q -e <encod>] merge <dest_file> <src_files>...
     rsparam.py [-q -e <encod>] sort [-n] <src_file>
 
@@ -24,10 +24,12 @@ Options:
     -s <sort_by>, --sortby <sort_by>    Sort by "name", "group" [default: name]
     -c <columns>, --columns <columns>    List of data columns separated by :
     -f <groupid>, --filter <groupid>    Filter by group id
+    -o <out_file>, --output <out_file>  Write results to output file
+    -O, --OUTPUT                        Auto write results to output file(s)
     -n, --byname                        Compare by name
     -1, --first                         First file only
     -2, --second                        Second file only
-"""
+""" # noqa
 
 
 from docopt import docopt
@@ -61,9 +63,23 @@ def report_filenames(sparam_files,
         report(colorfunc(f'{title}{sparam_file}'))
 
 
+def check_write_results(results):
+    # write output to file if requested
+    if args['--output']:
+        rsparam.write_entries(results, args['--output'],
+                              encoding=args['--encode'])
+        return args['--output']
+
+
 def list_params(src_file, sparams=None):
     if not sparams:
         sparams = rsparam.get_params(src_file, groupid=args['--filter'])
+
+    # write output to file if requested
+    out_file = check_write_results(sparams)
+    if out_file:
+        report_filenames(out_file, title='wrote results to: ')
+        return
 
     sparamdata = []
     if args['--columns']:
@@ -88,6 +104,12 @@ def list_groups(src_file, spgroups=None):
     if not spgroups:
         spgroups = rsparam.get_paramgroups(src_file, encoding=args['--encode'])
 
+    # write output to file if requested
+    out_file = check_write_results(spgroups)
+    if out_file:
+        report_filenames(out_file, title='wrote results to: ')
+        return
+
     spgroupdata = []
     if args['--columns']:
         sgroupattrs = args['--columns'].split(':')
@@ -111,6 +133,13 @@ def list_all(src_file):
 def find_param_dupls(src_file):
     byname = args['--byname']
     spentries = rsparam.find_duplicates(src_file, byname=byname)
+
+    # write output to file if requested
+    out_file = check_write_results(spentries.params)
+    if out_file:
+        report_filenames(out_file, title='wrote results to: ')
+        return
+
     duplparam = 'name' if byname else 'guid'
     dupldata = []
     report(colorful.yellow('\nduplicate params by {}:'.format(duplparam)))
@@ -134,6 +163,13 @@ def find_param_dupls(src_file):
 def find_group_dupls(src_file):
     byname = args['--byname']
     spentries = rsparam.find_duplicates(src_file, byname=byname)
+
+    # write output to file if requested
+    out_file = check_write_results(spentries.groups)
+    if out_file:
+        report_filenames(out_file, title='wrote results to: ')
+        return
+
     duplparam = 'name' if byname else 'guid'
     dupldata = []
     report(colorful.yellow('\nduplicate groups by {}:'.format(duplparam)))
@@ -158,6 +194,19 @@ def find_all_dupls(src_file):
 def find_matching(src_file):
     search_str = args['<regex_pattern>']
     spentries = rsparam.find(src_file, search_str, encoding=args['--encode'])
+
+    # write output to file if requested
+    out_entries = []
+    if not args['--params']:
+        out_entries.extend(spentries.groups)
+    if not args['--groups']:
+        out_entries.extend(spentries.params)
+
+    out_file = check_write_results(out_entries)
+    if out_file:
+        report_filenames(out_file, title='wrote results to: ')
+        return
+
     if spentries.groups and not args['--params']:
         report(colorful.yellow('\ngroups matching: {}'.format(search_str)))
         list_groups(None, spgroups=spentries.groups)
@@ -170,20 +219,25 @@ def find_matching(src_file):
 def comp(first_file, second_file):
     uniq1, uniq2 = rsparam.compare(first_file, second_file,
                                    encoding=args['--encode'])
+    # write output to files if requested
     if uniq1.groups and not args['--params'] and not args['--second']:
         report(colorful.yellow('\nunique groups in first'))
+        args['--output'] = 'uniq_groups_1.txt' if args['--OUTPUT'] else None
         list_groups(None, spgroups=uniq1.groups)
 
     if uniq2.groups and not args['--params'] and not args['--first']:
         report(colorful.yellow('\nunique groups in second'))
+        args['--output'] = 'uniq_groups_2.txt' if args['--OUTPUT'] else None
         list_groups(None, spgroups=uniq2.groups)
 
     if uniq1.params and not args['--groups'] and not args['--second']:
         report(colorful.yellow('\nunique parameters in first'))
+        args['--output'] = 'uniq_params_1.txt' if args['--OUTPUT'] else None
         list_params(None, sparams=uniq1.params)
 
     if uniq2.params and not args['--groups'] and not args['--first']:
         report(colorful.yellow('\nunique parameters in second'))
+        args['--output'] = 'uniq_params_2.txt' if args['--OUTPUT'] else None
         list_params(None, sparams=uniq2.params)
 
 
