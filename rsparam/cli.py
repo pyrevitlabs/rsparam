@@ -4,31 +4,32 @@
 Usage:
     rsparam.py (-h | --help)
     rsparam.py (-V | --version)
+    rsparam.py (-W | --writerversion)
     rsparam.py [-q -e <encod>] list [-a -s <sort_by> -c <columns> -o <out_file>] <src_file>
     rsparam.py [-q -e <encod>] list [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
-    rsparam.py [-q -e <encod>] list -p [-f <groupid> -o <out_file>] <src_file>
+    rsparam.py [-q -e <encod>] list -p [-f <guid> -o <out_file>] <src_file>
     rsparam.py [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
     rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
     rsparam.py [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns> -O] <first_file> <second_file>
     rsparam.py [-q -e <encod>] merge <dest_file> <src_files>...
-    rsparam.py [-q -e <encod>] sort [-n] <src_file>
 
 Options:
     -h, --help                          Show this help
-    -V, --version                       Show version
+    -V, --version                       Show command version
+    -W, --writerversion                 Show shared param file version
     -q, --quiet                         Quiet mode [default: False]
     -e <encod>, --encode <encod>        File encoding [default: utf-8]
     -a, --all                           All items
     -p, --params                        Parameters only
     -g, --groups                        Parameter groups only
     -s <sort_by>, --sortby <sort_by>    Sort by "name", "group" [default: name]
-    -c <columns>, --columns <columns>    List of data columns separated by :
-    -f <groupid>, --filter <groupid>    Filter by group id
+    -c <columns>, --columns <columns>   List of data columns separated by :
+    -f <guid>, --filter <guid>          Filter by group guid
     -o <out_file>, --output <out_file>  Write results to output file
-    -O, --OUTPUT                        Auto write results to output file(s)
-    -n, --byname                        Compare by name
-    -1, --first                         First file only
-    -2, --second                        Second file only
+    -O, --OUTPUT                        Write complex results to output file(s)
+    -n, --byname                        Compare by name instead of guid
+    -1, --first                         Output results for first file only
+    -2, --second                        Output results for second file only
 """ # noqa
 
 
@@ -250,6 +251,11 @@ def purge(source_file):
 
 
 def main():
+    if args['--writerversion']:
+        print('shared parameter writer version: {}.{}'
+              .format(*rsparam.__sparamversion__))
+        return
+
     # report globals
     report_globals()
 
