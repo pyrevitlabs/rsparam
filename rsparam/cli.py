@@ -4,28 +4,29 @@
 Usage:
     rsparam.py (-h | --help)
     rsparam.py (-V | --version)
-    rsparam.py [-q -e <encod>] list [-a -s <sort_by>] <src_file>
-    rsparam.py [-q -e <encod>] list [-p -g -s <sort_by>] <src_file>
+    rsparam.py [-q -e <encod>] list [-a -s <sort_by> -c <columns>] <src_file>
+    rsparam.py [-q -e <encod>] list [-p -g -s <sort_by> -c <columns>] <src_file>
     rsparam.py [-q -e <encod>] list -p [-f <groupid>] <src_file>
-    rsparam.py [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by>] <src_file>
-    rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by>] <src_file>
-    rsparam.py [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by>] <first_file> <second_file>
+    rsparam.py [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns>] <src_file>
+    rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns>] <src_file>
+    rsparam.py [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns>] <first_file> <second_file>
     rsparam.py [-q -e <encod>] merge <dest_file> <src_files>...
-    rsparam.py [-q -e <encod>] sort [-n] <src_file> <dest_file>
+    rsparam.py [-q -e <encod>] sort [-n] <src_file>
 
 Options:
-    -h, --help                          Show this help.
-    -V, --version                       Show version.
-    -q, --quiet                         Quiet mode.
-    -e <encod>, --encode <encod>        File encoding.
-    -a, --all                           All items.
-    -p, --params                        Parameters only.
-    -g, --groups                        Parameter groups only.
-    -s <sort_by>, --sortby <sort_by>    Sort by "name", "group"
-    -f <groupid>, --filter <groupid>    Filter by group id.
-    -n, --byname                        Compare by name.
-    -1, --first                         First file only.
-    -2, --second                        Second file only.
+    -h, --help                          Show this help
+    -V, --version                       Show version
+    -q, --quiet                         Quiet mode [default: False]
+    -e <encod>, --encode <encod>        File encoding [default: utf-8]
+    -a, --all                           All items
+    -p, --params                        Parameters only
+    -g, --groups                        Parameter groups only
+    -s <sort_by>, --sortby <sort_by>    Sort by "name", "group" [default: name]
+    -c <columns>, --columns <columns>    List of data columns separated by :
+    -f <groupid>, --filter <groupid>    Filter by group id
+    -n, --byname                        Compare by name
+    -1, --first                         First file only
+    -2, --second                        Second file only
 """
 
 
@@ -36,17 +37,17 @@ from tabulate import tabulate
 import rsparam
 
 
-_quiet = False              # global quiet mode flag
-_encoding = None            # global encoding for reading files
+# process command line args
+args = docopt(__doc__, version='rsparam {}'.format(rsparam.__version__))
 
 
 def report(message):
-    if not _quiet:
+    if not args['--quiet']:
         print(message)
 
 
 def report_globals():
-    enc_report = 'encoding={}'.format(_encoding) if _encoding \
+    enc_report = 'encoding={}'.format(args['--encode']) if args['--encode'] \
         else 'encoding not set'
     report(colorful.yellow(enc_report))
 
@@ -60,41 +61,55 @@ def report_filenames(sparam_files,
         report(colorfunc(f'{title}{sparam_file}'))
 
 
-def list_params(src_file, sparams=None, groupid=None, sortby='name'):
+def list_params(src_file, sparams=None):
     if not sparams:
-        sparams = rsparam.get_params(src_file,
-                                     encoding=_encoding, groupid=groupid)
+        sparams = rsparam.get_params(src_file, groupid=args['--filter'])
 
     sparamdata = []
+    if args['--columns']:
+        sparamattrs = args['--columns'].split(':')
+    else:
+        sparamattrs = ['guid', 'name', 'datatype', 'group', 'lineno']
     for sp in sparams:
-        sparamdata.append((sp.guid, sp.name, sp.datatype, sp.group, sp.lineno))
+        spcolumns = []
+        for spattr in sparamattrs:
+            spcolumns.append(getattr(sp, spattr, None))
+        sparamdata.append(tuple(spcolumns))
 
-    if sortby == 'group':
-        sparamdata = sorted(sparamdata, key=lambda x: str(x[3]))
+    if args['--sortby'] == 'group':
+        sparamdata = sorted(sparamdata, key=lambda x: getattr(x, 'name', 0))
 
     print(tabulate(sparamdata,
                    headers=('Guid', 'Name', 'Datatype', 'Group', 'Line #')))
     report("Total of {} items.".format(len(sparamdata)))
 
 
-def list_groups(src_file, spgroups=None, sortby='name'):
+def list_groups(src_file, spgroups=None):
     if not spgroups:
-        spgroups = rsparam.get_paramgroups(src_file, encoding=_encoding)
+        spgroups = rsparam.get_paramgroups(src_file, encoding=args['--encode'])
 
     spgroupdata = []
+    if args['--columns']:
+        sgroupattrs = args['--columns'].split(':')
+    else:
+        sgroupattrs = ['guid', 'name', 'lineno']
     for spg in spgroups:
-        spgroupdata.append((spg.guid, spg.name, spg.lineno))
+        spgcolumns = []
+        for spgattr in sgroupattrs:
+            spgcolumns.append(getattr(spg, spgattr, None))
+        spgroupdata.append(tuple(spgcolumns))
 
     print(tabulate(spgroupdata, headers=('Id', 'Description', 'Line #')))
     report("Total of {} items.".format(len(spgroupdata)))
 
 
-def list_all(src_file, sortby='name'):
-    list_groups(src_file, sortby=sortby)
-    list_params(src_file, sortby=sortby)
+def list_all(src_file):
+    list_groups(src_file)
+    list_params(src_file)
 
 
-def find_param_dupls(src_file, byname=False, sortby='name'):
+def find_param_dupls(src_file):
+    byname = args['--byname']
     spentries = rsparam.find_duplicates(src_file, byname=byname)
     duplparam = 'name' if byname else 'guid'
     dupldata = []
@@ -107,7 +122,7 @@ def find_param_dupls(src_file, byname=False, sortby='name'):
         print(colorful.yellow('\nduplicates by {}: {}'.format(duplparam,
                                                               dupldata[0][0])))
 
-        if sortby == 'group':
+        if args['--sortby'] == 'group':
             dupldata = sorted(dupldata, key=lambda x: str(x[3]))
 
         print(tabulate(dupldata,
@@ -116,7 +131,8 @@ def find_param_dupls(src_file, byname=False, sortby='name'):
                                 'Datatype', 'Group', 'Line #')))
 
 
-def find_group_dupls(src_file, byname=False, sortby='name'):
+def find_group_dupls(src_file):
+    byname = args['--byname']
     spentries = rsparam.find_duplicates(src_file, byname=byname)
     duplparam = 'name' if byname else 'guid'
     dupldata = []
@@ -134,137 +150,112 @@ def find_group_dupls(src_file, byname=False, sortby='name'):
                                 'Line #')))
 
 
-def find_all_dupls(src_file, groupsonly=False, paramsonly=False, sortby='name'):
-    if not paramsonly:
-        find_group_dupls(src_file, sortby=sortby)
-        find_group_dupls(src_file, byname=True, sortby=sortby)
-
-    if not groupsonly:
-        find_param_dupls(src_file, sortby=sortby)
-        find_param_dupls(src_file, byname=True, sortby=sortby)
+def find_all_dupls(src_file):
+    find_group_dupls(src_file)
+    find_param_dupls(src_file)
 
 
-def find_matching(src_file, search_str,
-                  groupsonly=False, paramsonly=False, sortby='name'):
-    spentries = rsparam.find(src_file, search_str, encoding=_encoding)
-    if spentries.groups and not paramsonly:
+def find_matching(src_file):
+    search_str = args['<regex_pattern>']
+    spentries = rsparam.find(src_file, search_str, encoding=args['--encode'])
+    if spentries.groups and not args['--params']:
         report(colorful.yellow('\ngroups matching: {}'.format(search_str)))
-        list_groups(None, spgroups=spentries.groups, sortby=sortby)
+        list_groups(None, spgroups=spentries.groups)
 
-    if spentries.params and not groupsonly:
+    if spentries.params and not args['--groups']:
         report(colorful.yellow('\nparams matching: {}'.format(search_str)))
-        list_params(None, sparams=spentries.params, sortby=sortby)
+        list_params(None, sparams=spentries.params)
 
 
-def comp(first_file, second_file,
-         listfirstonly=False, listsecondonly=False,
-         groupsonly=False, paramsonly=False, sortby='name'):
-    uniq1, uniq2 = rsparam.compare(first_file, second_file, encoding=_encoding)
-    if uniq1.groups and not paramsonly and not listsecondonly:
+def comp(first_file, second_file):
+    uniq1, uniq2 = rsparam.compare(first_file, second_file,
+                                   encoding=args['--encode'])
+    if uniq1.groups and not args['--params'] and not args['--second']:
         report(colorful.yellow('\nunique groups in first'))
-        list_groups(None, spgroups=uniq1.groups, sortby=sortby)
+        list_groups(None, spgroups=uniq1.groups)
 
-    if uniq2.groups and not paramsonly and not listfirstonly:
+    if uniq2.groups and not args['--params'] and not args['--first']:
         report(colorful.yellow('\nunique groups in second'))
-        list_groups(None, spgroups=uniq2.groups, sortby=sortby)
+        list_groups(None, spgroups=uniq2.groups)
 
-    if uniq1.params and not groupsonly and not listsecondonly:
+    if uniq1.params and not args['--groups'] and not args['--second']:
         report(colorful.yellow('\nunique parameters in first'))
-        list_params(None, sparams=uniq1.params, sortby=sortby)
+        list_params(None, sparams=uniq1.params)
 
-    if uniq2.params and not groupsonly and not listfirstonly:
+    if uniq2.params and not args['--groups'] and not args['--first']:
         report(colorful.yellow('\nunique parameters in second'))
-        list_params(None, sparams=uniq2.params, sortby=sortby)
+        list_params(None, sparams=uniq2.params)
 
 
 def merge(dest_file, source_files):
     raise NotImplementedError()
 
 
-def sort(source_file, dest_file, byname=False):
+def sort(source_file):
     raise NotImplementedError()
 
 
 def main():
-    args = docopt(__doc__, version='rsparam {}'.format(rsparam.__version__))
-
-    # set global flags
-    _quiet = args['--quiet']
-    _encoding = args['--encode']
+    # report globals
     report_globals()
 
-    # process command line args
-    # print(args)
-    # exit()
     if args['list']:
+        # reporting
         src_file = args['<src_file>']
         report_filenames(src_file, title='source file: ')
+
+        # list groups only
         if args['--groups'] and not args['--params']:
-            # list groups only
-            list_groups(src_file,
-                        sortby=args['--sortby'])
+            list_groups(src_file)
+        # list params only
         elif args['--params'] and not args['--groups']:
-            # list params only
-            list_params(src_file,
-                        groupid=args['--filter'], sortby=args['--sortby'])
+            list_params(src_file)
+        # list everything
         else:
-            # list everything
-            list_all(src_file,
-                     sortby=args['--sortby'])
+            list_all(src_file)
 
     elif args['find']:
+        # reporting
         src_file = args['<src_file>']
         report_filenames(src_file, title='source file: ')
+
+        # report duplicates
         if args['dupl']:
-            if args['--params']:
-                if args['--all']:
-                    find_all_dupls(src_file,
-                                   paramsonly=True,
-                                   sortby=args['--sortby'])
-                else:
-                    find_param_dupls(src_file,
-                                     byname=args['--byname'],
-                                     sortby=args['--sortby'])
+            if args['--all']:
+                find_all_dupls(src_file)
+            elif args['--params']:
+                find_param_dupls(src_file)
             elif args['--groups']:
-                if args['--all']:
-                    find_all_dupls(src_file,
-                                   groupsonly=True,
-                                   sortby=args['--sortby'])
-                else:
-                    find_group_dupls(src_file,
-                                     byname=args['--byname'],
-                                     sortby=args['--sortby'])
-            else:
-                find_all_dupls(src_file,
-                               sortby=args['--sortby'])
+                find_group_dupls(src_file)
         else:
-            find_matching(src_file, args['<regex_pattern>'],
-                          paramsonly=args['--params'],
-                          groupsonly=args['--groups'],
-                          sortby=args['--sortby'])
+            find_matching(src_file)
 
     elif args['comp']:
+        # reporting
         first_file = args['<first_file>']
         report_filenames(first_file, title='first file: ')
         second_file = args['<second_file>']
         report_filenames(second_file, title='second file: ')
-        comp(first_file, second_file,
-             listfirstonly=args['--first'], listsecondonly=args['--second'],
-             paramsonly=args['--params'], groupsonly=args['--groups'],
-             sortby=args['--sortby'])
+
+        # compare two shared parame files
+        comp(first_file, second_file)
 
     elif args['merge']:
+        # reporting
         dest_file = args['<dest_file>']
         report_filenames(dest_file, title='destination file: ')
         src_files = args['<src_files>']
         report_filenames(src_files, title='source file: ')
+
+        # merge two shared param files
         merge(dest_file, src_files)
 
     elif args['sort']:
+        # reporting
         source_file = args['<src_file>']
         report_filenames(source_file, title='source file: ')
-        dest_file = args['<dest_file>']
-        report_filenames(dest_file, title='destination file: ')
-        sort(source_file, dest_file, byname=args['--byname'])
+
+        # sort shared param file
+        sort(source_file, byname=args['--byname'])
 
     report('')
