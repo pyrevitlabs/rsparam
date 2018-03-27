@@ -14,16 +14,16 @@ pip install rsparam
 Utilities for working with Revit shared parameter files
 
 Usage:
-    rsparam.py (-h | --help)
-    rsparam.py (-V | --version)
-    rsparam.py [-q -e <encod>] list [-a] <src_file>
-    rsparam.py [-q -e <encod>] list [-p -g] <src_file>
-    rsparam.py [-q -e <encod>] list -p [-f <groupid>] <src_file>
-    rsparam.py [-q -e <encod>] find dupl [-n -a -p -g] <src_file>
-    rsparam.py [-q -e <encod>] find <search_string> [-p -g] <src_file>
-    rsparam.py [-q -e <encod>] comp [-p -g -1 -2] <first_file> <second_file>
-    rsparam.py [-q -e <encod>] merge <dest_file> <src_files>...
-    rsparam.py [-q -e <encod>] sort [-n] <src_file> <dest_file>
+    rsparam (-h | --help)
+    rsparam (-V | --version)
+    rsparam [-q -e <encod>] list [-a] <src_file>
+    rsparam [-q -e <encod>] list [-p -g] <src_file>
+    rsparam [-q -e <encod>] list -p [-f <groupid>] <src_file>
+    rsparam [-q -e <encod>] find dupl [-n -a -p -g] <src_file>
+    rsparam [-q -e <encod>] find <search_string> [-p -g] <src_file>
+    rsparam [-q -e <encod>] comp [-p -g -1 -2] <first_file> <second_file>
+    rsparam [-q -e <encod>] merge <dest_file> <src_files>...
+    rsparam [-q -e <encod>] sort [-n] <src_file> <dest_file>
 
 Options:
     -h, --help                          Show this help.

@@ -2,16 +2,16 @@
 """Utilities for working with Revit shared parameter files
 
 Usage:
-    rsparam.py (-h | --help)
-    rsparam.py (-V | --version)
-    rsparam.py (-W | --writerversion)
-    rsparam.py [-q -e <encod>] list [-a -s <sort_by> -c <columns> -o <out_file>] <src_file>
-    rsparam.py [-q -e <encod>] list [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
-    rsparam.py [-q -e <encod>] list -p [-f <guid> -o <out_file>] <src_file>
-    rsparam.py [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
-    rsparam.py [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
-    rsparam.py [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns> -O] <first_file> <second_file>
-    rsparam.py [-q -e <encod>] merge <dest_file> <src_files>...
+    rsparam (-h | --help)
+    rsparam (-V | --version)
+    rsparam (-W | --writerversion)
+    rsparam [-q -e <encod>] list [-a -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam [-q -e <encod>] list [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam [-q -e <encod>] list -p [-f <guid> -o <out_file>] <src_file>
+    rsparam [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
+    rsparam [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns> -O] <first_file> <second_file>
+    rsparam [-q -e <encod>] merge <dest_file> <src_files>...
 
 Options:
     -h, --help                          Show this help
