@@ -11,6 +11,7 @@ from collections import namedtuple, defaultdict
 
 # rsparam version
 __version__ = '0.1.9'
+__sparamversion__ = (2, 1)
 
 
 SharedParamEntries = namedtuple('SharedParamEntries', ['groups', 'params'])
@@ -105,6 +106,36 @@ def read_entries(src_file, encoding=None):
                 sp.group = spg
 
     return SharedParamEntries(spgroups, sparams)
+
+
+def write_entries(entries, out_file, encoding=None):
+    with codecs.open(out_file, 'w', encoding) as spf:
+        spf.write("# This is a Revit shared parameter file.\r\n")
+        spf.write("# Do not edit manually unless you know better!\r\n")
+        spf.write("*META\tVERSION\tMINVERSION\r\n")
+        spf.write("META\t{max_ver}\t{min_ver}\r\n"
+                  .format(max_ver=__sparamversion__[0],
+                          min_ver=__sparamversion__[1]))
+
+        sparamwriter = csv.writer(spf, delimiter="\t")
+
+        # write groups referenced by SharedParam instances and in entries
+        spf.write("*GROUP\tID\tNAME\r\n")
+        refgroups = {x.group for x in entries if isinstance(x, SharedParam)}
+        spgroups = {x for x in entries if isinstance(x, SharedParamGroup)}
+        spgroups = spgroups.union(refgroups)
+        for spg in sorted(spgroups, key=lambda x: x.name):
+            sparamwriter.writerow(['GROUP', spg.guid, spg.name])
+
+        # write SharedParam in entries
+        spf.write("*PARAM\tGUID\tNAME\tDATATYPE\tDATACATEGORY\tGROUP\t"
+                  "VISIBLE\tDESCRIPTION\tUSERMODIFIABLE\r\n")
+        sparams = {x for x in entries if isinstance(x, SharedParam)}
+        for sp in sorted(sparams, key=lambda x: x.name):
+            sparamwriter.writerow(
+                ['PARAM', sp.guid, sp.name, sp.datatype, sp.datacategory,
+                 sp.group.guid, sp.visible, sp.desc, sp.usermod]
+                )
 
 
 def get_paramgroups(src_file, encoding=None):
