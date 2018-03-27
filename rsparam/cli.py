@@ -55,7 +55,7 @@ def report_globals():
 
 
 def report_filenames(sparam_files,
-                     title='shared parameter file: ',
+                     title='source file: ',
                      colorfunc=colorful.blue):
     if not isinstance(sparam_files, list):
         sparam_files = [sparam_files]
@@ -242,10 +242,10 @@ def comp(first_file, second_file):
 
 
 def merge(dest_file, source_files):
-    raise NotImplementedError()
+    rsparam.merge(dest_file, source_files, encoding=args['--encode'])
 
 
-def sort(source_file):
+def purge(source_file):
     raise NotImplementedError()
 
 
@@ -256,7 +256,7 @@ def main():
     if args['list']:
         # reporting
         src_file = args['<src_file>']
-        report_filenames(src_file, title='source file: ')
+        report_filenames(src_file)
 
         # list groups only
         if args['--groups'] and not args['--params']:
@@ -271,7 +271,7 @@ def main():
     elif args['find']:
         # reporting
         src_file = args['<src_file>']
-        report_filenames(src_file, title='source file: ')
+        report_filenames(src_file)
 
         # report duplicates
         if args['dupl']:
@@ -299,17 +299,17 @@ def main():
         dest_file = args['<dest_file>']
         report_filenames(dest_file, title='destination file: ')
         src_files = args['<src_files>']
-        report_filenames(src_files, title='source file: ')
+        report_filenames(src_files)
 
         # merge two shared param files
         merge(dest_file, src_files)
 
-    elif args['sort']:
+    elif args['purge']:
         # reporting
         source_file = args['<src_file>']
-        report_filenames(source_file, title='source file: ')
+        report_filenames(source_file)
 
         # sort shared param file
-        sort(source_file, byname=args['--byname'])
+        purge(source_file)
 
     report('')

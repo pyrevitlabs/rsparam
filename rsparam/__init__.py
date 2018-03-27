@@ -190,3 +190,14 @@ def compare(first_file, second_file, encoding=None):
 
     return SharedParamEntries(uniqgroups1, uniqparams1), \
         SharedParamEntries(uniqgroups2, uniqparams2)
+
+
+def merge(out_file, source_files, encoding=None):
+    merged_spgroups = set()
+    merged_sparams = set()
+    for sfile in source_files:
+        spgroups, sparams = read_entries(sfile, encoding=encoding)
+        merged_spgroups.union(spgroups)
+        merged_sparams.union(sparams)
+
+    write_entries(list(spgroups) + list(sparams), out_file, encoding=encoding)
