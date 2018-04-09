@@ -10,7 +10,7 @@ from collections import namedtuple, defaultdict
 # pylama:ignore=D105
 
 # rsparam version
-__version__ = '0.1.11'
+__version__ = '0.1.12'
 __sparamversion__ = (2, 1)
 
 
@@ -192,12 +192,32 @@ def compare(first_file, second_file, encoding=None):
         SharedParamEntries(uniqgroups2, uniqparams2)
 
 
-def merge(out_file, source_files, encoding=None):
+def merge(source_files, out_file=None, encoding=None):
     merged_spgroups = set()
     merged_sparams = set()
     for sfile in source_files:
         spgroups, sparams = read_entries(sfile, encoding=encoding)
-        merged_spgroups.union(spgroups)
-        merged_sparams.union(sparams)
+        merged_spgroups = merged_spgroups.union(spgroups)
+        merged_sparams = merged_sparams.union(sparams)
 
-    write_entries(list(spgroups) + list(sparams), out_file, encoding=encoding)
+    if out_file:
+        write_entries(list(merged_spgroups) + list(merged_sparams),
+                      out_file, encoding=encoding)
+    else:
+        return SharedParamEntries(list(merged_spgroups), list(merged_sparams))
+
+
+def subtract(first_file, source_files, out_file=None, encoding=None):
+    spgroups, sparams = read_entries(first_file, encoding=encoding)
+    subtracted_spgroups = set(spgroups)
+    subtracted_sparams = set(sparams)
+    for sfile in source_files:
+        spgroups, sparams = read_entries(sfile, encoding=encoding)
+        subtracted_spgroups = subtracted_spgroups.difference(spgroups)
+        subtracted_sparams = subtracted_sparams.difference(sparams)
+
+    if out_file:
+        write_entries(list(subtracted_spgroups) + list(subtracted_sparams),
+                      out_file, encoding=encoding)
+    else:
+        return SharedParamEntries(subtracted_spgroups, subtracted_sparams)

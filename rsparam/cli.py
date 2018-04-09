@@ -1,3 +1,4 @@
+# pylama:skip=D400
 #!/usr/bin/env python
 """Utilities for working with Revit shared parameter files
 
@@ -11,7 +12,8 @@ Usage:
     rsparam [-q -e <encod>] find dupl [-n -a -p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
     rsparam [-q -e <encod>] find <regex_pattern> [-p -g -s <sort_by> -c <columns> -o <out_file>] <src_file>
     rsparam [-q -e <encod>] comp [-p -g -1 -2 -s <sort_by> -c <columns> -O] <first_file> <second_file>
-    rsparam [-q -e <encod>] merge <dest_file> <src_files>...
+    rsparam [-q -e <encod>] merge [-o <out_file>] <src_files>...
+    rsparam [-q -e <encod>] subtract [-o <out_file>] <first_file> <src_files>...
 
 Options:
     -h, --help                          Show this help
@@ -242,8 +244,36 @@ def comp(first_file, second_file):
         list_params(None, sparams=uniq2.params)
 
 
-def merge(dest_file, source_files):
-    rsparam.merge(dest_file, source_files, encoding=args['--encode'])
+def merge(source_files):
+    # reporting
+    dest_file = args['--output']
+    report_filenames(dest_file, title='destination file: ')
+
+    sparamset = rsparam.merge(source_files,
+                              out_file=dest_file, encoding=args['--encode'])
+
+    if dest_file:
+        report_filenames(dest_file, title='wrote results to: ')
+        return
+
+    list_groups(None, spgroups=sparamset.groups)
+    list_params(None, sparams=sparamset.params)
+
+
+def subtract(first_file, source_files):
+    # reporting
+    dest_file = args['--output']
+    report_filenames(dest_file, title='destination file: ')
+
+    sparamset = rsparam.subtract(first_file, source_files,
+                                 out_file=dest_file, encoding=args['--encode'])
+
+    if dest_file:
+        report_filenames(dest_file, title='wrote results to: ')
+        return
+
+    list_groups(None, spgroups=sparamset.groups)
+    list_params(None, sparams=sparamset.params)
 
 
 def purge(source_file):
@@ -302,13 +332,21 @@ def main():
 
     elif args['merge']:
         # reporting
-        dest_file = args['<dest_file>']
-        report_filenames(dest_file, title='destination file: ')
         src_files = args['<src_files>']
         report_filenames(src_files)
 
         # merge two shared param files
-        merge(dest_file, src_files)
+        merge(src_files)
+
+    elif args['subtract']:
+        # reporting
+        first_file = args['<first_file>']
+        report_filenames(first_file, title='target file: ')
+        src_files = args['<src_files>']
+        report_filenames(src_files)
+
+        # sort shared param file
+        subtract(first_file, src_files)
 
     elif args['purge']:
         # reporting
