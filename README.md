@@ -1,3 +1,5 @@
+[![PyPi](https://img.shields.io/pypi/v/rsparam.svg)](https://pypi.org/project/rsparam)
+
 # rsparam
 Command-line utility and python module for managing Revit Shared Parameter files.
 
