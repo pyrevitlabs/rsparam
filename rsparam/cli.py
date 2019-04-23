@@ -76,7 +76,11 @@ def check_write_results(results):
 
 def list_params(src_file, sparams=None):
     if not sparams:
-        sparams = rsparam.get_params(src_file, groupid=args['--filter'])
+        sparams = rsparam.get_params(
+            src_file,
+            encoding=args['--encode'],
+            groupid=args['--filter']
+        )
 
     # write output to file if requested
     out_file = check_write_results(sparams)
