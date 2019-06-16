@@ -121,8 +121,12 @@ def write_entries(entries, out_file, encoding=None):
 
         # write groups referenced by SharedParam instances and in entries
         spf.write("*GROUP\tID\tNAME\r\n")
-        refgroups = {x.group for x in entries if isinstance(x, SharedParam)}
-        spgroups = {x for x in entries if isinstance(x, SharedParamGroup)}
+        if isinstance(entries, SharedParamEntries):
+            refgroups = {x.group for x in entries.params}
+            spgroups = {x for x in entries.groups}
+        else:
+            refgroups = {x.group for x in entries if isinstance(x, SharedParam)}
+            spgroups = {x for x in entries if isinstance(x, SharedParamGroup)}
         spgroups = spgroups.union(refgroups)
         for spg in sorted(spgroups, key=lambda x: x.name):
             sparamwriter.writerow(['GROUP', spg.guid, spg.name])
@@ -130,7 +134,10 @@ def write_entries(entries, out_file, encoding=None):
         # write SharedParam in entries
         spf.write("*PARAM\tGUID\tNAME\tDATATYPE\tDATACATEGORY\tGROUP\t"
                   "VISIBLE\tDESCRIPTION\tUSERMODIFIABLE\r\n")
-        sparams = {x for x in entries if isinstance(x, SharedParam)}
+        if isinstance(entries, SharedParamEntries):
+            sparams = {x for x in entries.params}
+        else:
+            sparams = {x for x in entries if isinstance(x, SharedParam)}
         for sp in sorted(sparams, key=lambda x: x.name):
             sparamwriter.writerow(
                 ['PARAM', sp.guid, sp.name, sp.datatype, sp.datacategory,
