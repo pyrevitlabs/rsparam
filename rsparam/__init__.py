@@ -130,7 +130,10 @@ def write_entries(entries, out_file, encoding=None):
             spgroups = {x for x in entries if isinstance(x, SharedParamGroup)}
         spgroups = spgroups.union(refgroups)
         sys_language = locale.getdefaultlocale(locale.LC_ALL)[0]
-        locale.setlocale(locale.LC_ALL, "{}.UTF-8".format(sys_language))
+        try:
+            locale.setlocale(locale.LC_ALL, "{}.UTF-8".format(sys_language))
+        except locale.Error:  # Fix for python/ironpython 2
+            locale.setlocale(locale.LC_ALL, sys_language)
         for spg in sorted(spgroups, key=lambda x: locale.strxfrm(x.name)):
             sparamwriter.writerow(['GROUP', spg.guid, spg.name])
 
